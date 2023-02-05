@@ -1,49 +1,69 @@
+import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  TextInput,
-  ScrollView,
-  FlatList,
-} from "react-native";
+import { StyleSheet, View, FlatList, Button } from "react-native";
+import CustomButton from "./components/CustomButton";
+import GoalInput from "./components/GoalInput";
+import GoalItem from "./components/GoalItem";
 
 export default function App() {
-  const [enteredGoalText, setEnteredGoalText] = useState("");
   const [goals, setGoals] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
-  function goalInputHandler(enteredText) {
-    setEnteredGoalText(enteredText);
+  function startAddGoalHandler() {
+    setShowModal(true);
   }
 
-  function addGoaltHandler() {
-    setGoals((prevGoals) => [...prevGoals, enteredGoalText]);
+  function endAddGoalHandler() {
+    setShowModal(false);
+  }
+
+  function addGoaltHandler(enteredGoalText) {
+    if (!enteredGoalText) return;
+    setGoals((prevGoals) => [
+      ...prevGoals,
+      { text: enteredGoalText, id: Math.random().toString() },
+    ]);
+    endAddGoalHandler();
+  }
+
+  function deleteGoaltHandler(id) {
+    setGoals((prevGoals) => prevGoals.filter((goals) => goals.id !== id));
   }
 
   return (
-    <View style={styles.appContainer}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Your course goal!"
-          style={styles.textInput}
-          onChangeText={goalInputHandler}
+    <>
+      <StatusBar style="light" />
+      <View style={styles.appContainer}>
+        <CustomButton
+          title="Add new Goal"
+          buttonContainer={styles.buttonContainer}
+          buttonStyles={styles.buttonStyles}
+          onPressHandler={startAddGoalHandler}
+          rippleEffect={styles.rippleEffect}
+          buttonTextStyles={styles.buttonTextStyles}
         />
-        <Button title="Add Goal" onPress={addGoaltHandler} />
-      </View>
-      <View style={styles.goalsContainer}>
-        <FlatList
-          data={goals}
-          renderItem={(goalsData) => {
-            return (
-              <View key={goalsData.goal} style={styles.goalsListItems}>
-                <Text style={styles.goalText}>{goalsData.item}</Text>
-              </View>
-            );
-          }}
+        <GoalInput
+          onAddGoal={addGoaltHandler}
+          onShowModal={showModal}
+          onCloseModal={endAddGoalHandler}
         />
+        <View style={styles.goalsContainer}>
+          <FlatList
+            data={goals}
+            renderItem={(goalsData) => {
+              return (
+                <GoalItem
+                  onDelete={deleteGoaltHandler}
+                  value={goalsData.item}
+                  id={goalsData.item.id}
+                />
+              );
+            }}
+            keyExtractor={(item) => item.id}
+          />
+        </View>
       </View>
-    </View>
+    </>
   );
 }
 
@@ -52,34 +72,31 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 50,
     paddingHorizontal: 16,
-  },
-  inputContainer: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginRight: 8,
+    backgroundColor: "#1e085a",
     alignItems: "center",
-    marginBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
   },
-  textInput: {
-    borderWidth: 1,
-    justifyContent: "#cccccc",
-    width: "70%",
-    padding: 8,
-  },
+
   goalsContainer: {
     flex: 6,
-  },
-  goalsListItems: {
-    borderRadius: 5,
     width: "90%",
-    padding: 8,
-    paddingHorizontal: 16,
-    backgroundColor: "#5e08cc",
-    color: "#ffffff",
-    margin: 6,
   },
-  goalText: { color: "#ffffff" },
+  buttonContainer: {
+    marginVertical: 16,
+    alignItems: "stretch",
+    flex: 1,
+    width: "80%",
+  },
+  buttonStyles: {
+    backgroundColor: "#a065ec",
+    borderRadius: 5,
+    width: "100%",
+    padding: 8,
+    alignItems: "center",
+  },
+  buttonTextStyles: {
+    color: "#ffffff",
+  },
+  rippleEffect: {
+    opacity: 0.8,
+  },
 });
